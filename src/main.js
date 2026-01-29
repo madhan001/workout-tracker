@@ -220,7 +220,16 @@ function setupEventListeners() {
     elements.saveIntervalsBtn?.addEventListener('click', handleSaveIntervalsSettings);
 
     // Workout Logging
-    document.getElementById('fab-log-workout')?.addEventListener('click', openLogWorkoutModal);
+    // Workout Logging - Switch to log view
+    document.getElementById('fab-log-workout')?.addEventListener('click', () => handleNavigation('log'));
+    document.getElementById('log-workout-save')?.addEventListener('click', handleSaveWorkout);
+    document.getElementById('add-exercise-btn')?.addEventListener('click', addExerciseBlock);
+
+    // Remove legacy modal listeners if exists (cleanup)
+    const logModal = document.getElementById('log-workout-modal');
+    if (logModal) {
+        logModal.remove();
+    }
     document.getElementById('log-workout-close')?.addEventListener('click', closeLogWorkoutModal);
     document.getElementById('log-workout-cancel')?.addEventListener('click', closeLogWorkoutModal);
     document.getElementById('log-workout-save')?.addEventListener('click', handleSaveWorkout);
@@ -398,8 +407,10 @@ function handleExportYAML() {
 /**
  * Open the log workout modal
  */
-function openLogWorkoutModal() {
-    const modal = document.getElementById('log-workout-modal');
+/**
+ * Initialize the log workout view
+ */
+function initializeLogView() {
     const dateInput = document.getElementById('workout-date');
     const exercisesContainer = document.getElementById('exercises-container');
 
@@ -415,9 +426,6 @@ function openLogWorkoutModal() {
 
     // Add one exercise block to start
     addExerciseBlock();
-
-    // Show modal
-    modal.classList.remove('hidden');
 }
 
 /**
@@ -746,13 +754,14 @@ async function handleSaveWorkout() {
         saveBtn.innerHTML = '✓ Saved!';
 
         // Reload workout data
+        // Reload workout data
         setTimeout(async () => {
-            closeLogWorkoutModal();
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
 
-            // Refresh the workout list
+            // Refresh data and go to workouts view
             await loadWorkoutData();
+            handleNavigation('workouts');
         }, 1000);
 
     } catch (err) {
@@ -798,6 +807,9 @@ function handleNavigation(view) {
     switch (view) {
         case 'overview':
             updateOverview();
+            break;
+        case 'log':
+            initializeLogView();
             break;
         case 'workouts':
             updateWorkoutsView();
@@ -862,8 +874,8 @@ function updateVolumeChart(workouts) {
         state.charts.volume.destroy();
     }
 
-    // Prepare data (oldest first for chart)
-    const chartWorkouts = [...workouts].reverse().slice(-14);
+    // Prepare data (oldest first for chart) - Show last 30 workouts to fill space
+    const chartWorkouts = [...workouts].reverse().slice(-30);
 
     const labels = chartWorkouts.map(w => {
         const date = w.dateObject;
