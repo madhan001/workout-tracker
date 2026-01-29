@@ -418,9 +418,14 @@
                 <button class="modal-close" id="log-workout-close">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="workout-date">Date</label>
-                    <input type="date" id="workout-date">
+                <div class="form-group date-selection-group">
+                    <label>Date</label>
+                    <div class="date-quick-btns">
+                        <button type="button" id="date-today-btn" class="btn btn-sm date-btn active">📅 Today</button>
+                        <button type="button" id="date-yesterday-btn" class="btn btn-sm date-btn">⏪ Yesterday</button>
+                        <button type="button" id="date-custom-btn" class="btn btn-sm date-btn">🗓️ Pick Date</button>
+                    </div>
+                    <input type="date" id="workout-date" class="hidden">
                 </div>
 
                 <div id="exercises-container">
@@ -452,8 +457,13 @@
     <template id="exercise-template">
         <div class="exercise-block">
             <div class="exercise-header">
-                <input type="text" class="exercise-name-input" placeholder="Exercise name (e.g., Bench Press)"
-                    list="exercise-suggestions">
+                <div class="exercise-input-wrapper">
+                    <input type="text" class="exercise-name-input" placeholder="Search or type exercise name..."
+                        autocomplete="off">
+                    <div class="exercise-search-dropdown">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
                 <button class="btn-icon btn-remove-exercise" title="Remove exercise">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12" />

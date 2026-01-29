@@ -404,8 +404,11 @@ function openLogWorkoutModal() {
     const exercisesContainer = document.getElementById('exercises-container');
 
     // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.value = today;
+    const today = new Date();
+    dateInput.value = today.toISOString().split('T')[0];
+
+    // Setup date quick buttons
+    setupDateButtons(today);
 
     // Clear previous exercises
     exercisesContainer.innerHTML = '';
@@ -413,11 +416,53 @@ function openLogWorkoutModal() {
     // Add one exercise block to start
     addExerciseBlock();
 
-    // Populate exercise suggestions from history
-    populateExerciseSuggestions();
-
     // Show modal
     modal.classList.remove('hidden');
+}
+
+/**
+ * Setup date button handlers
+ */
+function setupDateButtons(defaultDate) {
+    const dateInput = document.getElementById('workout-date');
+    const todayBtn = document.getElementById('date-today-btn');
+    const yesterdayBtn = document.getElementById('date-yesterday-btn');
+    const customBtn = document.getElementById('date-custom-btn');
+
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset button states
+    [todayBtn, yesterdayBtn, customBtn].forEach(btn => {
+        if (btn) btn.classList.remove('active');
+    });
+    todayBtn?.classList.add('active');
+    dateInput.classList.add('hidden');
+
+    // Today button
+    todayBtn?.addEventListener('click', () => {
+        dateInput.value = today.toISOString().split('T')[0];
+        dateInput.classList.add('hidden');
+        [todayBtn, yesterdayBtn, customBtn].forEach(btn => btn?.classList.remove('active'));
+        todayBtn.classList.add('active');
+    });
+
+    // Yesterday button
+    yesterdayBtn?.addEventListener('click', () => {
+        dateInput.value = yesterday.toISOString().split('T')[0];
+        dateInput.classList.add('hidden');
+        [todayBtn, yesterdayBtn, customBtn].forEach(btn => btn?.classList.remove('active'));
+        yesterdayBtn.classList.add('active');
+    });
+
+    // Custom date button
+    customBtn?.addEventListener('click', () => {
+        dateInput.classList.remove('hidden');
+        [todayBtn, yesterdayBtn, customBtn].forEach(btn => btn?.classList.remove('active'));
+        customBtn.classList.add('active');
+        dateInput.focus();
+    });
 }
 
 /**
@@ -471,6 +516,9 @@ function addExerciseBlock() {
         addSetRow(exerciseBlock.querySelector('.sets-container'));
     });
 
+    // Setup exercise search dropdown
+    setupExerciseSearch(exerciseBlock);
+
     container.appendChild(clone);
 
     // Add first set automatically
@@ -478,6 +526,121 @@ function addExerciseBlock() {
 
     // Focus the exercise name input
     container.lastElementChild.querySelector('.exercise-name-input').focus();
+}
+
+/**
+ * Setup exercise search with dropdown for autocomplete
+ */
+function setupExerciseSearch(exerciseBlock) {
+    const input = exerciseBlock.querySelector('.exercise-name-input');
+    const dropdown = exerciseBlock.querySelector('.exercise-search-dropdown');
+
+    // Get all unique exercises with their muscle groups
+    const exercises = getExerciseList();
+
+    // Input event - filter as user types
+    input.addEventListener('input', () => {
+        const query = input.value.toLowerCase().trim();
+
+        if (query.length < 1) {
+            dropdown.classList.remove('show');
+            return;
+        }
+
+        const matches = exercises.filter(ex =>
+            ex.name.toLowerCase().includes(query)
+        ).slice(0, 8);
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div class="no-matches">No exercises found</div>';
+        } else {
+            dropdown.innerHTML = matches.map(ex => `
+                <div class="exercise-option" data-name="${ex.name}">
+                    <div class="exercise-option-name">${highlightMatch(ex.name, query)}</div>
+                    ${ex.muscles ? `<div class="exercise-option-muscle">${ex.muscles}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        dropdown.classList.add('show');
+
+        // Add click handlers for options
+        dropdown.querySelectorAll('.exercise-option').forEach(option => {
+            option.addEventListener('click', () => {
+                input.value = option.dataset.name;
+                dropdown.classList.remove('show');
+                input.focus();
+            });
+        });
+    });
+
+    // Hide dropdown on blur (with delay for click)
+    input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.remove('show'), 200);
+    });
+
+    // Show dropdown on focus if there's content
+    input.addEventListener('focus', () => {
+        if (input.value.length >= 1) {
+            input.dispatchEvent(new Event('input'));
+        }
+    });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', (e) => {
+        const options = dropdown.querySelectorAll('.exercise-option');
+        const highlighted = dropdown.querySelector('.exercise-option.highlighted');
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (!highlighted && options.length > 0) {
+                options[0].classList.add('highlighted');
+            } else if (highlighted && highlighted.nextElementSibling) {
+                highlighted.classList.remove('highlighted');
+                highlighted.nextElementSibling.classList.add('highlighted');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (highlighted && highlighted.previousElementSibling) {
+                highlighted.classList.remove('highlighted');
+                highlighted.previousElementSibling.classList.add('highlighted');
+            }
+        } else if (e.key === 'Enter') {
+            if (highlighted) {
+                e.preventDefault();
+                input.value = highlighted.dataset.name;
+                dropdown.classList.remove('show');
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.classList.remove('show');
+        }
+    });
+}
+
+/**
+ * Get list of unique exercises from workout history
+ */
+function getExerciseList() {
+    const exerciseMap = new Map();
+
+    state.workouts.forEach(workout => {
+        workout.exercises?.forEach(ex => {
+            if (!exerciseMap.has(ex.name)) {
+                const muscles = ex.muscleGroups?.map(m => getMuscleDisplayName(m)).join(', ') || '';
+                exerciseMap.set(ex.name, { name: ex.name, muscles });
+            }
+        });
+    });
+
+    return Array.from(exerciseMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Highlight matching text in exercise name
+ */
+function highlightMatch(text, query) {
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<strong>$1</strong>');
 }
 
 /**
