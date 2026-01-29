@@ -1,14 +1,14 @@
-const CACHE_NAME = 'workout-tracker-v1';
+const CACHE_NAME = 'workout-tracker-v2';
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/src/main.js',
-    '/src/styles/index.css',
-    '/src/utils/dataParser.js',
-    '/src/services/sheetsService.js',
-    '/src/services/intervalsService.js',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    './',
+    './index.html',
+    './src/main.js',
+    './src/styles/index.css',
+    './src/utils/dataParser.js',
+    './src/services/sheetsService.js',
+    './src/services/intervalsService.js',
+    './icons/icon-192.png',
+    './icons/icon-512.png'
 ];
 
 // External CDN resources to cache

@@ -2,20 +2,21 @@
     "name": "Workout Tracker",
     "short_name": "Workouts",
     "description": "Track your weightlifting workouts with Google Sheets integration and heart rate data from intervals.icu",
-    "start_url": "/",
+    "start_url": "./",
+    "scope": "./",
     "display": "standalone",
     "background_color": "#0f172a",
     "theme_color": "#6366f1",
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/icons/icon-192.png",
+            "src": "./icons/icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/icons/icon-512.png",
+            "src": "./icons/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
@@ -30,20 +31,20 @@
     "shortcuts": [
         {
             "name": "View Workouts",
-            "url": "/?view=workouts",
+            "url": "./?view=workouts",
             "icons": [
                 {
-                    "src": "/icons/icon-192.png",
+                    "src": "./icons/icon-192.png",
                     "sizes": "192x192"
                 }
             ]
         },
         {
             "name": "Personal Records",
-            "url": "/?view=records",
+            "url": "./?view=records",
             "icons": [
                 {
-                    "src": "/icons/icon-192.png",
+                    "src": "./icons/icon-192.png",
                     "sizes": "192x192"
                 }
             ]
