@@ -7,8 +7,8 @@
 const CONFIG = {
     // Replace with your Google Cloud project client ID
     CLIENT_ID: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
-    // Google Sheets API scope (read-only)
-    SCOPES: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    // Google Sheets API scope (read + write)
+    SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
     // Discovery doc for Sheets API
     DISCOVERY_DOC: 'https://sheets.googleapis.com/$discovery/rest?version=v4'
 };

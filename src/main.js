@@ -3,7 +3,7 @@
  */
 
 import { initializeGoogleAuth, signIn, signOut, isAuthenticated, isOAuthConfigured } from './services/googleAuth.js';
-import { fetchAllWorkouts, getSpreadsheetId, setSpreadsheetId } from './services/sheetsService.js';
+import { fetchAllWorkouts, getSpreadsheetId, setSpreadsheetId, saveWorkout } from './services/sheetsService.js';
 import {
     sortWorkoutsByDate,
     filterWorkoutsByDateRange,
@@ -219,6 +219,20 @@ function setupEventListeners() {
     elements.testIntervalsBtn?.addEventListener('click', handleTestIntervalsConnection);
     elements.saveIntervalsBtn?.addEventListener('click', handleSaveIntervalsSettings);
 
+    // Workout Logging
+    document.getElementById('fab-log-workout')?.addEventListener('click', openLogWorkoutModal);
+    document.getElementById('log-workout-close')?.addEventListener('click', closeLogWorkoutModal);
+    document.getElementById('log-workout-cancel')?.addEventListener('click', closeLogWorkoutModal);
+    document.getElementById('log-workout-save')?.addEventListener('click', handleSaveWorkout);
+    document.getElementById('add-exercise-btn')?.addEventListener('click', addExerciseBlock);
+
+    // Close log workout modal on outside click
+    document.getElementById('log-workout-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'log-workout-modal') {
+            closeLogWorkoutModal();
+        }
+    });
+
     // Auth events
     window.addEventListener('auth-success', handleAuthSuccess);
     window.addEventListener('auth-signout', handleAuthSignout);
@@ -373,6 +387,219 @@ function handleExportYAML() {
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
+        }, 2000);
+    }
+}
+
+// ============================================
+// WORKOUT LOGGING FUNCTIONS
+// ============================================
+
+/**
+ * Open the log workout modal
+ */
+function openLogWorkoutModal() {
+    const modal = document.getElementById('log-workout-modal');
+    const dateInput = document.getElementById('workout-date');
+    const exercisesContainer = document.getElementById('exercises-container');
+
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+
+    // Clear previous exercises
+    exercisesContainer.innerHTML = '';
+
+    // Add one exercise block to start
+    addExerciseBlock();
+
+    // Populate exercise suggestions from history
+    populateExerciseSuggestions();
+
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Close the log workout modal
+ */
+function closeLogWorkoutModal() {
+    const modal = document.getElementById('log-workout-modal');
+    modal.classList.add('hidden');
+}
+
+/**
+ * Populate exercise autocomplete suggestions from workout history
+ */
+function populateExerciseSuggestions() {
+    const datalist = document.getElementById('exercise-suggestions');
+    datalist.innerHTML = '';
+
+    // Get unique exercise names from all workouts
+    const exerciseNames = new Set();
+    state.workouts.forEach(workout => {
+        workout.exercises?.forEach(ex => {
+            exerciseNames.add(ex.name);
+        });
+    });
+
+    // Add options
+    exerciseNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        datalist.appendChild(option);
+    });
+}
+
+/**
+ * Add an exercise block to the form
+ */
+function addExerciseBlock() {
+    const template = document.getElementById('exercise-template');
+    const container = document.getElementById('exercises-container');
+
+    const clone = template.content.cloneNode(true);
+    const exerciseBlock = clone.querySelector('.exercise-block');
+
+    // Add remove exercise handler
+    exerciseBlock.querySelector('.btn-remove-exercise').addEventListener('click', () => {
+        exerciseBlock.remove();
+    });
+
+    // Add set button handler
+    exerciseBlock.querySelector('.btn-add-set').addEventListener('click', () => {
+        addSetRow(exerciseBlock.querySelector('.sets-container'));
+    });
+
+    container.appendChild(clone);
+
+    // Add first set automatically
+    addSetRow(container.lastElementChild.querySelector('.sets-container'));
+
+    // Focus the exercise name input
+    container.lastElementChild.querySelector('.exercise-name-input').focus();
+}
+
+/**
+ * Add a set row to an exercise block
+ */
+function addSetRow(setsContainer) {
+    const template = document.getElementById('set-template');
+    const clone = template.content.cloneNode(true);
+    const setRow = clone.querySelector('.set-row');
+
+    // Update set number
+    const setNumber = setsContainer.querySelectorAll('.set-row').length + 1;
+    setRow.querySelector('.set-number').textContent = setNumber;
+
+    // Add RPE button handlers
+    setRow.querySelectorAll('.rpe-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Deselect others in this row
+            setRow.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('selected'));
+            // Select this one
+            btn.classList.add('selected');
+        });
+    });
+
+    // Add remove set handler
+    setRow.querySelector('.btn-remove-set').addEventListener('click', () => {
+        setRow.remove();
+        // Renumber remaining sets
+        renumberSets(setsContainer);
+    });
+
+    setsContainer.appendChild(clone);
+}
+
+/**
+ * Renumber sets after removal
+ */
+function renumberSets(setsContainer) {
+    setsContainer.querySelectorAll('.set-row').forEach((row, index) => {
+        row.querySelector('.set-number').textContent = index + 1;
+    });
+}
+
+/**
+ * Handle saving the workout to Google Sheets
+ */
+async function handleSaveWorkout() {
+    const dateInput = document.getElementById('workout-date');
+    const exercisesContainer = document.getElementById('exercises-container');
+    const saveBtn = document.getElementById('log-workout-save');
+
+    // Get date in MM/DD/YYYY format for sheet name
+    const dateValue = dateInput.value;
+    if (!dateValue) {
+        alert('Please select a date');
+        return;
+    }
+
+    const [year, month, day] = dateValue.split('-');
+    const sheetDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+    // Collect exercise data
+    const exercises = [];
+    const exerciseBlocks = exercisesContainer.querySelectorAll('.exercise-block');
+
+    for (const block of exerciseBlocks) {
+        const name = block.querySelector('.exercise-name-input').value.trim();
+        if (!name) continue;
+
+        const sets = [];
+        const setRows = block.querySelectorAll('.set-row');
+
+        for (const row of setRows) {
+            const weight = parseFloat(row.querySelector('.set-weight').value) || 0;
+            const reps = parseInt(row.querySelector('.set-reps').value) || 0;
+            const selectedRpe = row.querySelector('.rpe-btn.selected');
+            const rpe = selectedRpe ? selectedRpe.dataset.rpe : '';
+
+            if (weight > 0 || reps > 0) {
+                sets.push({ weight, reps, rpe });
+            }
+        }
+
+        if (sets.length > 0) {
+            exercises.push({ name, sets });
+        }
+    }
+
+    if (exercises.length === 0) {
+        alert('Please add at least one exercise with sets');
+        return;
+    }
+
+    // Save to Google Sheets
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = 'Saving...';
+    saveBtn.disabled = true;
+
+    try {
+        await saveWorkout(sheetDate, exercises);
+
+        saveBtn.innerHTML = '✓ Saved!';
+
+        // Reload workout data
+        setTimeout(async () => {
+            closeLogWorkoutModal();
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+
+            // Refresh the workout list
+            await loadWorkoutData();
+        }, 1000);
+
+    } catch (err) {
+        console.error('Failed to save workout:', err);
+        saveBtn.innerHTML = 'Error!';
+        alert('Failed to save workout: ' + err.message);
+
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
         }, 2000);
     }
 }

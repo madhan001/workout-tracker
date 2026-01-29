@@ -377,6 +377,11 @@
             <div class="loading-spinner"></div>
             <p>Loading your workouts...</p>
         </div>
+
+        <!-- Floating Action Button to Log Workout -->
+        <button id="fab-log-workout" class="fab-log-workout" title="Log New Workout">
+            ➕
+        </button>
     </div>
 
     <!-- Modal for editing exercise mapping -->
@@ -404,6 +409,93 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal for logging new workout -->
+    <div id="log-workout-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>🏋️ Log Workout</h3>
+                <button class="modal-close" id="log-workout-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="workout-date">Date</label>
+                    <input type="date" id="workout-date">
+                </div>
+
+                <div id="exercises-container">
+                    <!-- Exercise blocks added dynamically -->
+                </div>
+
+                <button id="add-exercise-btn" class="btn btn-secondary btn-full-width">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add Exercise
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="log-workout-cancel">Cancel</button>
+                <button class="btn btn-primary" id="log-workout-save">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    Save Workout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for exercise block (hidden, cloned by JS) -->
+    <template id="exercise-template">
+        <div class="exercise-block">
+            <div class="exercise-header">
+                <input type="text" class="exercise-name-input" placeholder="Exercise name (e.g., Bench Press)"
+                    list="exercise-suggestions">
+                <button class="btn-icon btn-remove-exercise" title="Remove exercise">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sets-container">
+                <!-- Sets added here -->
+            </div>
+            <button class="btn btn-sm btn-add-set">+ Add Set</button>
+        </div>
+    </template>
+
+    <!-- Template for set row -->
+    <template id="set-template">
+        <div class="set-row">
+            <span class="set-number">1</span>
+            <div class="set-input-group">
+                <input type="number" class="set-weight" placeholder="Weight" min="0" step="2.5">
+                <span class="input-unit">lbs</span>
+            </div>
+            <div class="set-input-group">
+                <input type="number" class="set-reps" placeholder="Reps" min="1" max="100">
+                <span class="input-unit">reps</span>
+            </div>
+            <div class="rpe-selector">
+                <button class="rpe-btn" data-rpe="easy" title="Easy - Could do 3+ more">😊</button>
+                <button class="rpe-btn" data-rpe="moderate" title="Moderate - Could do 1-2 more">😤</button>
+                <button class="rpe-btn" data-rpe="hard" title="Hard - Near failure">🔥</button>
+            </div>
+            <button class="btn-icon btn-remove-set" title="Remove set">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </template>
+
+    <!-- Datalist for exercise autocomplete -->
+    <datalist id="exercise-suggestions">
+        <!-- Populated dynamically from workout history -->
+    </datalist>
 
     <script type="module" src="src/main.js"></script>
 </body>
