@@ -33,6 +33,7 @@ import {
     detectHRPeaks,
     analyzeWorkoutHR
 } from './utils/dataParser.js';
+import { exportToYAML, downloadYAML } from './utils/yamlExport.js';
 
 // Application State
 const state = {
@@ -193,6 +194,15 @@ function setupEventListeners() {
     elements.addExerciseBtn?.addEventListener('click', () => openMappingModal());
     elements.addMuscleGroupBtn?.addEventListener('click', handleAddMuscleGroup);
 
+    // Muscle Group Modal
+    elements.addMuscleGroupBtn?.addEventListener('click', openMuscleGroupModal);
+    elements.closeMuscleGroupModal?.addEventListener('click', closeMuscleGroupModal);
+    elements.cancelMuscleGroupBtn?.addEventListener('click', closeMuscleGroupModal);
+    elements.saveMuscleGroupBtn?.addEventListener('click', handleSaveMuscleGroup);
+
+    // Data Export
+    document.getElementById('export-yaml')?.addEventListener('click', handleExportYAML);
+
     // Modal
     elements.modalClose?.addEventListener('click', closeMappingModal);
     elements.modalCancel?.addEventListener('click', closeMappingModal);
@@ -320,6 +330,50 @@ async function loadWorkoutData() {
         alert('Failed to load workout data. Please check your spreadsheet ID and try again.');
     } finally {
         hideLoading();
+    }
+}
+
+/**
+ * Handle data export to YAML
+ */
+function handleExportYAML() {
+    if (!state.workouts || state.workouts.length === 0) {
+        alert('No workout data available to export.');
+        return;
+    }
+
+    const btn = document.getElementById('export-yaml');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Generating...';
+    btn.disabled = true;
+
+    try {
+        // Prepare comprehensive data object
+        const exportData = {
+            summary: calculateStats(state.workouts),
+            muscleGroups: calculateMuscleVolume(state.filteredWorkouts, state.customMuscleGroups),
+            personalRecords: state.personalRecords || [],
+            workouts: state.workouts,
+            customMappings: state.customMappings,
+            customMuscleGroups: state.customMuscleGroups
+        };
+
+        const yaml = exportToYAML(exportData);
+        downloadYAML(yaml, `workout-tracker-export-${new Date().toISOString().split('T')[0]}.yaml`);
+
+        btn.innerHTML = '✓ Exported!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    } catch (err) {
+        console.error('Export failed:', err);
+        btn.innerHTML = 'Error!';
+        alert('Failed to generate export file. Check console for details.');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
     }
 }
 
