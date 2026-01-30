@@ -1170,7 +1170,7 @@ function updateMusclesView() {
         const color = getMuscleColor(id);
 
         return `
-        < div class="muscle-card" >
+            <div class="muscle-card">
                 <div class="muscle-card-header">
                     <span class="muscle-name">${getMuscleDisplayName(id)}</span>
                     <span class="muscle-volume">${formatNumber(info.volume)} lbs</span>
@@ -1179,7 +1179,7 @@ function updateMusclesView() {
                     <div class="muscle-bar-fill" style="width: ${percentage}%; background: ${color}"></div>
                 </div>
                 <p class="muscle-exercises">${info.exercises.slice(0, 3).join(', ')}${info.exercises.length > 3 ? '...' : ''}</p>
-            </div >
+            </div>
         `;
     }).join('');
 }
@@ -1194,11 +1194,11 @@ function updateRecordsView() {
     const records = stats.personalRecords.sort((a, b) => b.weight - a.weight);
 
     elements.recordsTbody.innerHTML = records.map(pr => `
-        < tr >
+        <tr>
             <td>${pr.name}</td>
             <td><strong>${formatNumber(pr.weight)} lbs</strong></td>
             <td>${pr.date}</td>
-        </tr >
+        </tr>
         `).join('');
 }
 
@@ -1307,7 +1307,7 @@ function updateMuscleGroupsList() {
     });
 
     elements.muscleGroupsList.innerHTML = Object.entries(categories).map(([category, muscles]) => `
-        < div style = "margin-bottom: var(--spacing-md);" >
+        <div style="margin-bottom: var(--spacing-md);">
             <strong style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">${category}</strong>
             <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs); margin-top: var(--spacing-xs);">
                 ${muscles.map(m => `
@@ -1316,7 +1316,7 @@ function updateMuscleGroupsList() {
                     </span>
                 `).join('')}
             </div>
-        </div >
+        </div>
         `).join('');
 }
 
@@ -1338,9 +1338,9 @@ function openMappingModal(exerciseName = null) {
     }
 
     elements.muscleCheckboxes.innerHTML = Object.entries(categories).map(([category, muscles]) => `
-        < div style = "grid-column: span 2; margin-top: var(--spacing-sm);" >
+        <div style="grid-column: span 2; margin-top: var(--spacing-sm);">
             <strong style="color: var(--color-text-secondary); font-size: var(--font-size-xs);">${category}</strong>
-        </div >
+        </div>
         ${muscles.map(m => `
             <label class="muscle-checkbox">
                 <input type="checkbox" name="muscle" value="${m.id}" ${currentMuscles.includes(m.id) ? 'checked' : ''}>

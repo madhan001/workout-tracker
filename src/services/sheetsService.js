@@ -13,7 +13,7 @@ const SHEETS_API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
  * @returns {string}
  */
 export function getSpreadsheetId() {
-    return localStorage.getItem('spreadsheet_id') || '1LuJKii-khZsUoqXkOQusGeE8s2vbLB5PiifAt5ybPFk';
+    return localStorage.getItem('spreadsheet_id') || '1-uTCXFYsG2bRXNjPDBRbKYOPUq1vwaVKKJtenAxQ3Mw';
 }
 
 /**

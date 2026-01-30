@@ -1,6 +1,23 @@
 # Workout Tracker
 
+[![CI](https://github.com/YOUR_USERNAME/workout-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/workout-tracker/actions/workflows/ci.yml)
+
 A web application that connects to your Google Sheets workout log to visualize progress, track volume, analyze muscle groups, and monitor personal records.
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run unit tests only
+npm run test:unit
+
+# Run integration tests only
+npm run test:integration
+```
+
+Tests run automatically on every push and pull request via GitHub Actions.
 
 ## Setup Instructions
 
